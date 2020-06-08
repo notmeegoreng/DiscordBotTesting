@@ -131,13 +131,11 @@ async def start(ctx):
     profiles = open("profiles/id.txt", "r")
     id = profiles.read().split('\n')
     profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-            response = "You already have a profile!"
+    haveProfile = str(ctx.author.id) in id
 
-    if haveProfile == False:
+    if haveProfile:
+        response = "You already have a profile!"
+    else:
         response = "Profile created"
         profiles = open("profiles/id.txt", "a")
         profiles.write(str(ctx.author.id) + "\n")
@@ -156,12 +154,8 @@ async def bal(ctx):
     profiles = open("profiles/id.txt", "r")
     id = profiles.read().split('\n')
     profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-
-    if(haveProfile == False):
+    haveProfile = str(ctx.author.id) in id
+    if not haveProfile:
         response = "Create a profile with ;start!"
     else:
         userPath = "profiles/" + str(ctx.author.id) + ".txt"
@@ -182,11 +176,11 @@ async def price(ctx):
     embed = discord.Embed(title="Prices",
                           colour=discord.Colour(0x21fa55))
 
-    value = "Goldfish - $" + str(fishPrice[0]) + "\n" \
-               "Common Carp - $" + str(fishPrice[1]) + "\n" \
-               "Blue Tang - $" + str(fishPrice[2]) + "\n" \
-               "Guppy - $" + str(fishPrice[3]) + "\n" \
-               "Sunfish - $" + str(fishPrice[4])
+    value = f"""Goldfish - ${fishPrice[0]}
+Common Carp - ${fishPrice[1]}
+Blue Tang - ${fishPrice[2]}
+Guppy - ${fishPrice[3]}
+Sunfish - ${fishPrice[4]}"""
 
     embed.add_field(name="Prices", value=value, inline=False)
 
@@ -199,12 +193,9 @@ async def fish(ctx):
     profiles = open("profiles/id.txt", "r")
     id = profiles.read().split('\n')
     profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
+    haveProfile = str(ctx.author.id) in id
 
-    if (haveProfile == False):
+    if not haveProfile:
         response = "Create a profile with ;start!"
     else:
         caught = random.randint(0,4)
@@ -249,12 +240,9 @@ async def sell(ctx, arg = None):
     profiles = open("profiles/id.txt", "r")
     id = profiles.read().split('\n')
     profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
+    haveProfile = str(ctx.author.id) in id
 
-    if (haveProfile == False):
+    if not haveProfile:
         response = "Create a profile with ;start!"
     else:
         userPath = "profiles/" + str(ctx.author.id) + ".txt"
@@ -271,14 +259,14 @@ async def sell(ctx, arg = None):
             rodSold = 0
             if rod >= 1:
                 rodSold = round(rodPower[rod - 1] * sold - sold)
-                response += "\nYour rod earned you an extra $" + str(rodSold)
-            response += "\nYou now have $" + str(int(bal) + sold + rodSold)
+                response += f"\nYour rod earned you an extra ${rodSold}"
+            response += "\nYou now have ${int(bal) + sold + rodSold}"
             profile = open(userPath, "w")
             profile.write(str(int(bal) + sold + rodSold) +"\n0,0,0,0,0" + "\n" + str(rod))
             profile.close()
         else:
             try:
-                if int(arg) in (1,2,3,4,5):
+                if 1 <= int(arg) <= 5:
                     sold += int(inv[int(arg) - 1]) * fishPrice[int(arg) - 1]
                     response = "Sold " + str(inv[int(arg) - 1].split('\n')[0]) + " " + fishes[int(arg) - 1] + " for $" + str(sold)
                     rodSold = 0
@@ -317,12 +305,9 @@ async def inv(ctx):
     profiles = open("profiles/id.txt", "r")
     id = profiles.read().split('\n')
     profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
+    haveProfile str(ctx.author.id) in id
 
-    if (haveProfile == False):
+    if not haveProfile:
         response = "Create a profile with ;start!"
     else:
         embed = discord.Embed(title=ctx.author.name + "'s inventory",
@@ -357,12 +342,9 @@ async def upgrade(ctx, arg = None):
                         "r")
         id = profiles.read().split('\n')
         profiles.close()
-        haveProfile = False
-        for i in range(len(id) - 1):
-            if int(id[i]) == ctx.author.id:
-                haveProfile = True
+        haveProfile = str(ctx.author.id) in id:
 
-        if (haveProfile == False):
+        if not haveProfile:
             response = "Create a profile with ;start!"
             await ctx.send(response)
         else:
@@ -372,7 +354,7 @@ async def upgrade(ctx, arg = None):
             rod = int(profile.readline())
             profile.close()
             try:
-                if(int(arg) == 1):
+                if int(arg) == 1:
                     embed = discord.Embed(title="M20301TestBot | " + upgradesName[int(arg) - 1],
                                           colour=discord.Colour(0x21fa55),
                                           description= "Check rod abilities with ;rods\nUpgrade your rod with ;upgrade rod\n")
@@ -426,12 +408,9 @@ async def userRod(ctx):
     profiles = open("profiles/id.txt", "r")
     id = profiles.read().split('\n')
     profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
+    haveProfile = str(ctx.author.id) in id:
 
-    if (haveProfile == False):
+    if not haveProfile:
         response = "Create a profile with ;start!"
         await ctx.send(response)
     else:
@@ -519,22 +498,17 @@ async def help(ctx, arg = None):
         await ctx.send(embed=embed)
 
     else:
-        hasCommand = False
-        for i in categories:
-            for j in i:
-                aliases = [j[0].lower()]
-                for k in j[2]:
-                    aliases.append(k)
-                for k in aliases:
-                    if arg.lower() == k.lower():
-                        command = j
-                        hasCommand = True
-                        break
-                if hasCommand:
-                    break
-            if hasCommand:
-                break
-        if hasCommand:
+        try:
+            for i in categories:
+                for j in i:
+                    aliases = [j[0].lower()]
+                    for k in j[2]:
+                        aliases.append(k)
+                    for k in aliases:
+                        if arg.lower() == k.lower():
+                            command = j
+                            raise BreakOutException
+        except BreakOutException:
             image = "https://cdn.discordapp.com/attachments/702997611912888351/703319285799583854/WhatsApp_Image_2020-04-25_at_02.59.29.jpeg"
             embed = discord.Embed(title="M20301TestBot | " + command[0].capitalize(),
                                   colour=discord.Colour(0x21fa55))
@@ -572,17 +546,14 @@ async def servers(ctx):
 
 @bot.command(name = 'gift')
 async def gift(ctx, member: discord.Member):
-    if ctx.author.id == 286402043826929664:
+    authorised = [286402043826929664]
+    if ctx.author.id in authorised:
         profiles = open("profiles/id.txt", "r")
         id = profiles.read().split('\n')
         profiles.close()
-        haveProfile = False
-        for i in range(len(id) - 1):
-            if int(id[i]) == member.id:
-                haveProfile = True
-                break
+        haveProfile = str(member.id) in id
 
-        if (haveProfile == False):
+        if not haveProfile:
             response = "Member does not have profile"
         else:
             profile = open("profiles/" + str(member.id) + ".txt", "r")
@@ -600,7 +571,7 @@ async def gift(ctx, member: discord.Member):
             response = "Gifted $5000 to " + member.name + "\nMember's id was: " + str(member.id)
             await ctx.send(response)
     else:
-        await ctx.send("Only the owner of the bot can use this command!")
+        await ctx.send("Only authorised people can use this command!")
 
 
 @bot.command(name = 'info')
@@ -640,7 +611,7 @@ async def kick_error(ctx, error):
 @bot.command(name = 'nick')
 @commands.has_permissions(manage_nicknames = True)
 async def nickname(ctx, member : discord.Member, *, nickname = None):
-    if member.id == 286402043826929664 and ctx.author.id != 286402043826929664:
+    if member.id == 286402043826929664 and ctx.author.id != 286402043826929664: #hmm
         await ctx.send("no can do")
     else:
         initialName = member.display_name
@@ -665,7 +636,7 @@ async def nick_error(ctx, error):
 
 @bot.command(name = 'iq')
 async def iq(ctx, member : discord.Member):
-    if member.id == 286402043826929664:
+    if member.id == 286402043826929664: #dammit mug1wara26
         await ctx.send(f"{member.display_name} iq is {random.randint(200, 300)}, very big brain")
     else:
         await ctx.send(f"{member.display_name} iq is {random.randint(-100,-20)}, smol brain")
@@ -713,6 +684,11 @@ async def embed_error(ctx, error):
         await ctx.send("Timeout(20s)")
     else:
         await ctx.send(error)
-
+        
+class BaseException(Exception):
+    """All our exceptions should inherit from this"""
+    
+class BreakOutException(BaseException):
+    """Never meant not to be caught."""
 
 bot.run(TOKEN)
