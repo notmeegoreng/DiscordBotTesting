@@ -22,8 +22,8 @@ bot.remove_command("help")
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
-    servers = list(bot.guilds)
-    print("Connected on " + str(len(servers)) + " servers:")
+    servers = list(bot.guilds) #im not sure if can be not converted to list, depends on if the bot.guilds object defines __len__
+    print(f"Connected on {len(servers)} servers:")
     print(f'\n'.join(server.name for server in servers))
     await bot.change_presence(activity = discord.Activity(name = "with your mom", type = discord.ActivityType.playing))
 
@@ -51,14 +51,10 @@ async def on_message(message):
     '''
     except IndexError:
         urls = re.findall(r"(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])", message.content)
-        count = 0
-        for i in urls:
-            count += 1
-            print(count)
         print(urls[0])
         if urls:
             print("here")
-            for i in range(1, count + 1):
+            for i in range(1, len(urls) + 1):
                 try:
                     response = requests.get(urls.group(i))
                     print(urls.group(i))
@@ -108,7 +104,7 @@ async def kiss(ctx, member: discord.Member):
     links = ["https://cdn.discordapp.com/attachments/702997611912888351/703669191093256272/tenor_3.gif", "https://cdn.discordapp.com/attachments/702997611912888351/703669867760582656/tenor_1.gif", "https://cdn.discordapp.com/attachments/702997611912888351/703669872210739380/tenor_2.gif", "https://cdn.discordapp.com/attachments/702997611912888351/703669873640734761/tenor_4.gif", "https://cdn.discordapp.com/attachments/702997611912888351/703669881597330031/tenor.gif"]
     embed = discord.Embed(title=ctx.author.name + " kisses " + member.name,
                           colour=discord.Colour(0x21fa55))
-    embed.set_image(url = links[random.randint(0,len(links)) - 1])
+    embed.set_image(url = random.choice(links))
     guild = ctx.author.guild
     if member == guild.me:
         response = "w-what are you doing you disgusting pervert"
@@ -128,54 +124,37 @@ async def kiss_error(ctx, error):
 @bot.command(name='start')
 @commands.has_permissions(send_messages = True)
 async def start(ctx):
-    profiles = open("profiles/id.txt", "r")
-    id = profiles.read().split('\n')
-    profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-            response = "You already have a profile!"
-
-    if haveProfile == False:
+    if checkProfile(ctx):
+        response = "You already have a profile!"
+    else:
         response = "Profile created"
-        profiles = open("profiles/id.txt", "a")
-        profiles.write(str(ctx.author.id) + "\n")
-        profiles.close()
-        userPath = "profiles/" + str(ctx.author.id) + ".txt"
-        user = open(userPath, "w")
-        user.write("3000\n"
-                   "0,0,0,0,0\n"
-                   "0")
-        user.close()
+        with open("profiles/id.txt", "a") as profile:
+            profiles.write(str(ctx.author.id) + "\n")
+        userPath = f"profiles/{ctx.author.id}.txt"
+        with open(userPath, "w") as user:
+            user.write("3000\n"
+                       "0,0,0,0,0\n"
+                       "0")
     await ctx.send(response)
 
 
 @bot.command(name='balance', aliases = ["bal", 'b'])
 async def bal(ctx):
-    profiles = open("profiles/id.txt", "r")
-    id = profiles.read().split('\n')
-    profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-
-    if(haveProfile == False):
-        response = "Create a profile with ;start!"
-    else:
-        userPath = "profiles/" + str(ctx.author.id) + ".txt"
-        profile = open(userPath, "r")
-        bal = profile.readline()
-        profile.close()
+    if checkProfile(ctx):
+        userPath = f"profiles/{ctx.author.id}.txt"
+        with open(userPath, "r") as profile:
+            bal = profile.readline()
+        
         embed = discord.Embed(colour=discord.Colour(0x21fa55))
 
         embed.set_author(name = ctx.author.name, icon_url = ctx.author.avatar_url)
 
         embed.add_field(name="**Balance**", value = "$" + bal)
 
-    await ctx.send(embed = embed)
-
+        await ctx.send(embed = embed)
+    else:
+        response = "Create a profile with ;start!"
+        await ctx.send(response)
 
 @bot.command(name = 'price')
 async def price(ctx):
@@ -196,17 +175,7 @@ async def price(ctx):
 @commands.cooldown(1, 10, commands.BucketType.user)
 @commands.bot_has_permissions(send_messages = True)
 async def fish(ctx):
-    profiles = open("profiles/id.txt", "r")
-    id = profiles.read().split('\n')
-    profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-
-    if (haveProfile == False):
-        response = "Create a profile with ;start!"
-    else:
+    if checkProfile(ctx):
         caught = random.randint(0,4)
 
         userPath = "profiles/" + str(ctx.author.id) + ".txt"
@@ -231,6 +200,8 @@ async def fish(ctx):
         profile.write(rod)
         profile.close()
         response = "You have caught a " + fishes[caught]
+    else:
+        response = "Create a profile with ;start!"
     await ctx.send(response)
 
 @fish.error
@@ -246,17 +217,7 @@ async def fish_error(ctx, error):
 @bot.command(name = 'sell', aliases=['s'])
 @commands.bot_has_permissions(send_messages = True)
 async def sell(ctx, arg = None):
-    profiles = open("profiles/id.txt", "r")
-    id = profiles.read().split('\n')
-    profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-
-    if (haveProfile == False):
-        response = "Create a profile with ;start!"
-    else:
+    if checkProfile:
         userPath = "profiles/" + str(ctx.author.id) + ".txt"
         profile = open(userPath, "r")
         bal = profile.readline()
@@ -301,9 +262,11 @@ async def sell(ctx, arg = None):
                     profile.close
                 else:
                     response = "Invalid fish id!"
-            except:
+            except ValueError:
                 response = "That is not a number!"
-        await ctx.send(response)
+    else:
+        response = "Create a profile with ;start!"
+    await ctx.send(response)
 @sell.error
 async def sell_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
@@ -314,17 +277,7 @@ async def sell_error(ctx, error):
 
 @bot.command(name='inventory', aliases=["inv"])
 async def inv(ctx):
-    profiles = open("profiles/id.txt", "r")
-    id = profiles.read().split('\n')
-    profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
-
-    if (haveProfile == False):
-        response = "Create a profile with ;start!"
-    else:
+    if checkProfile(ctx):
         embed = discord.Embed(title=ctx.author.name + "'s inventory",
                               colour=discord.Colour(0x21fa55))
         userPath = "profiles/" + str(ctx.author.id) + ".txt"
@@ -339,6 +292,9 @@ async def inv(ctx):
                 response += "\n"
         embed.add_field(name="Inventory", value=response, inline=False)
         await ctx.send(embed=embed)
+    else:
+        response = "Create a profile with ;start!"
+        ctx.send(response)
 
 @bot.command(name = 'upgrades', aliases = ["upgrade", "up"])
 @commands.bot_has_permissions(send_messages = True)
@@ -352,20 +308,8 @@ async def upgrade(ctx, arg = None):
         embed.add_field(name="**1. Fishing rods**", value = "\u200b")
 
         await ctx.send(embed=embed)
-    else:
-        profiles = open("profiles/id.txt",
-                        "r")
-        id = profiles.read().split('\n')
-        profiles.close()
-        haveProfile = False
-        for i in range(len(id) - 1):
-            if int(id[i]) == ctx.author.id:
-                haveProfile = True
-
-        if (haveProfile == False):
-            response = "Create a profile with ;start!"
-            await ctx.send(response)
-        else:
+    else:   
+        if checkProfile(ctx):
             profile = open("profiles/" + str(ctx.author.id) + ".txt", "r")
             bal = int(profile.readline())
             inv = profile.readline()
@@ -393,6 +337,9 @@ async def upgrade(ctx, arg = None):
 
                 else:
                     await ctx.send("Not a valid upgrade id!")
+        else:
+            response = "Create a profile with ;start!"
+            await ctx.send(response)
 @upgrade.error
 async def sell_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
@@ -409,9 +356,9 @@ async def rodsName(ctx):
     costValue = ""
     powerValue = ""
     for i in range(len(rods)):
-        rodValue += str(i + 1) + ". " + rods[i] + '\n'
-        costValue += "$" + str(cost[i]) + '\n'
-        powerValue += str(rodPower[i]) + 'x\n'
+        rodValue += f"{i + 1}. {rods[i]}\n"
+        costValue += f"${cost[i]}\n'
+        powerValue += f"{rodPower[i]}x\n"
 
     embed.add_field(name = "Rods", value = rodValue)
 
@@ -423,28 +370,17 @@ async def rodsName(ctx):
 
 @bot.command(name = 'rod')
 async def userRod(ctx):
-    profiles = open("profiles/id.txt", "r")
-    id = profiles.read().split('\n')
-    profiles.close()
-    haveProfile = False
-    for i in range(len(id) - 1):
-        if int(id[i]) == ctx.author.id:
-            haveProfile = True
+    if checkProfile(ctx):
 
-    if (haveProfile == False):
-        response = "Create a profile with ;start!"
-        await ctx.send(response)
-    else:
         embed = discord.Embed(title="M20301TestBot | " + ctx.author.name + "'s Rod",
                               colour=discord.Colour(0x21fa55))
 
-        profile = open("profiles/" + str(ctx.author.id) + ".txt", "r")
-        int(profile.readline())
-        profile.readline()
-        rod = int(profile.readline())
-        profile.close()
+        with open(f"profiles/{ctx.author.id}.txt", "r") as profile: #maybe should put profiles in func
+            int(profile.readline()) #????
+            profile.readline() #??
+            rod = int(profile.readline())
 
-        if rod != 0:
+        if rod:
             value = rods[rod - 1]
         else:
             value = "Broken Rod"
@@ -452,12 +388,14 @@ async def userRod(ctx):
         embed.add_field(name = "Rod", value = value)
 
         await ctx.send(embed = embed)
-
+    else:
+        response = "Create a profile with ;start!"
+        await ctx.send(response)
 
 #Miscellaneous
 @bot.command(name='ping')
 async def ping(ctx):
-    response = "pong! " + str(round(bot.latency * 1000)) + "ms"
+    response = f"pong! {round(bot.latency * 1000)}ms"
     await ctx.send(response)
 
 
@@ -519,22 +457,18 @@ async def help(ctx, arg = None):
         await ctx.send(embed=embed)
 
     else:
-        hasCommand = False
-        for i in categories:
-            for j in i:
-                aliases = [j[0].lower()]
-                for k in j[2]:
-                    aliases.append(k)
-                for k in aliases:
-                    if arg.lower() == k.lower():
-                        command = j
-                        hasCommand = True
-                        break
-                if hasCommand:
-                    break
-            if hasCommand:
-                break
-        if hasCommand:
+        try:
+            for i in categories:
+                for j in i:
+                    aliases = [j[0].lower()]
+                    for k in j[2]:
+                        aliases.append(k)
+                    for k in aliases:
+                        if arg.lower() == k.lower():
+                            command = j
+                            hasCommand = True
+                            raise BreakOutException
+        except BreakOutException:
             image = "https://cdn.discordapp.com/attachments/702997611912888351/703319285799583854/WhatsApp_Image_2020-04-25_at_02.59.29.jpeg"
             embed = discord.Embed(title="M20301TestBot | " + command[0].capitalize(),
                                   colour=discord.Colour(0x21fa55))
@@ -568,23 +502,12 @@ async def help(ctx, arg = None):
 @bot.command(name = 'servers')
 async def servers(ctx):
     servers = list(bot.guilds)
-    await ctx.send(f"Connected on {str(len(servers))} servers:\n" + '\n'.join(server.name for server in servers))
+    await ctx.send(f"Connected on {len(servers)} servers:\n" + "\n".join(server.name for server in servers))
 
 @bot.command(name = 'gift')
 async def gift(ctx, member: discord.Member):
-    if ctx.author.id == 286402043826929664:
-        profiles = open("profiles/id.txt", "r")
-        id = profiles.read().split('\n')
-        profiles.close()
-        haveProfile = False
-        for i in range(len(id) - 1):
-            if int(id[i]) == member.id:
-                haveProfile = True
-                break
-
-        if (haveProfile == False):
-            response = "Member does not have profile"
-        else:
+    if ctx.author.id == 286402043826929664: #hmm at this point maybe u should put this in a global var
+        if checkProfile(ctx):
             profile = open("profiles/" + str(member.id) + ".txt", "r")
             data = profile.read().split('\n')
             profile.close()
@@ -598,16 +521,18 @@ async def gift(ctx, member: discord.Member):
                     profile.write(i + '\n')
             profile.close()
             response = "Gifted $5000 to " + member.name + "\nMember's id was: " + str(member.id)
-            await ctx.send(response)
+        else:
+            response = "Recieving member does not have profile!"
+        await ctx.send(response)
     else:
-        await ctx.send("Only the owner of the bot can use this command!")
+        await ctx.send("Only the owner of the bot can use this command!") 
 
 
 @bot.command(name = 'info')
 async def info(ctx, *, arg = None):
     #hard coded for now cause im too lazy kafojadoh
     response = "No info"
-    if arg.lower() == 'cold war start':
+    if arg.lower() == 'cold war start': #hm
             response = "-soviet expansionism into poland and eastern europe, commie govts set up after coups\n" \
                         "-american containment policy [curb soviet expansion into europe]\n" \
                         "-truman doctrine [give turkey + greece weapons and money to stop rebels and civil war respectively]\n" \
@@ -623,12 +548,11 @@ async def info(ctx, *, arg = None):
 async def kick(ctx, member : discord.Member, *, reason = None):
     if reason == None:
         await ctx.send("Please include a reason in `kick [reason]`")
+    elif member.id == 286402043826929664: #hm
+        await ctx.send("You can't kick the owner of the bot muahahaha")
     else:
-        if member.id == 286402043826929664:
-            await ctx.send("You can't kick the owner of the bot muahahaha")
-        else:
-            await member.kick(reason = reason)
-            await ctx.send(f"{member.display_name} has been kicked for {reason}")
+        await member.kick(reason = reason)
+        await ctx.send(f"{member.display_name} has been kicked for {reason}")
 @kick.error
 async def kick_error(ctx, error):
     if isinstance(error, commands.CheckFailure):
@@ -640,7 +564,7 @@ async def kick_error(ctx, error):
 @bot.command(name = 'nick')
 @commands.has_permissions(manage_nicknames = True)
 async def nickname(ctx, member : discord.Member, *, nickname = None):
-    if member.id == 286402043826929664 and ctx.author.id != 286402043826929664:
+    if member.id == 286402043826929664 and ctx.author.id != 286402043826929664: #??????
         await ctx.send("no can do")
     else:
         initialName = member.display_name
@@ -666,7 +590,7 @@ async def nick_error(ctx, error):
 @bot.command(name = 'iq')
 async def iq(ctx, member : discord.Member):
     if member.id == 286402043826929664:
-        await ctx.send(f"{member.display_name} iq is {random.randint(200, 300)}, very big brain")
+        await ctx.send(f"{member.display_name} iq is {random.randint(200, 300)}, very big brain") #dammit mugwara
     else:
         await ctx.send(f"{member.display_name} iq is {random.randint(-100,-20)}, smol brain")
 
@@ -689,7 +613,7 @@ async def embed(ctx, *, arg):
     message = await ctx.send('Where to post embed?')
     while True:
         ch = await bot.wait_for('message', timeout=20)
-        if ch.author.bot == False and ch.author == ctx.author:
+        if not ch.author.bot and ch.author == ctx.author:
             if len(ch.channel_mentions) == 1:
                 await ch.delete()
                 await message.delete()
@@ -698,11 +622,7 @@ async def embed(ctx, *, arg):
             else:
                 await ctx.send("Invalid input, try again")
 
-    arg = arg.split(',')
-    title = arg[0]
-    description = arg[1]
-    footer = arg[2]
-    color = arg[3]
+    title, description, footer, color = arg.split(',')
     embed = discord.Embed(title = title, description = description, color = int(color, 16))
 
     embed.set_footer(text = footer)
@@ -716,3 +636,19 @@ async def embed_error(ctx, error):
 
 
 bot.run(TOKEN)
+
+def checkProfile(ctx):
+    with open("profiles/id.txt", "r") as profiles:
+        id = profiles.read().split('\n')
+    
+    return str(ctx.author.id) in id
+
+class BaseException(Exception):
+    """All our exception should inherit from this"""
+    
+class BreakOutException(BaseException):
+    """Should never not be caught."""
+    def __init__(self):
+        super().__init__("If this exception isn't caught, everything is messed up.")
+    
+    
