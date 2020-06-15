@@ -25,6 +25,7 @@ def checkProfile(ctx):
     
     return str(ctx.author.id) in id
 
+"""
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -32,7 +33,7 @@ async def on_ready():
     print(f"Connected on {len(servers)} servers:")
     print(f'\n'.join(server.name for server in servers))
     await bot.change_presence(activity = discord.Activity(name = "with your mom", type = discord.ActivityType.playing))
-
+"""
 
 @bot.event
 async def on_member_join(member):
