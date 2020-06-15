@@ -357,7 +357,7 @@ async def rodsName(ctx):
     powerValue = ""
     for i in range(len(rods)):
         rodValue += f"{i + 1}. {rods[i]}\n"
-        costValue += f"${cost[i]}\n'
+        costValue += f"${cost[i]}\n"
         powerValue += f"{rodPower[i]}x\n"
 
     embed.add_field(name = "Rods", value = rodValue)
