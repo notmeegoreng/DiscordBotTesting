@@ -19,6 +19,12 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix=';')
 bot.remove_command("help")
 
+def checkProfile(ctx):
+    with open("profiles/id.txt", "r") as profiles:
+        id = profiles.read().split('\n')
+    
+    return str(ctx.author.id) in id
+
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -636,12 +642,6 @@ async def embed_error(ctx, error):
 
 
 bot.run(TOKEN)
-
-def checkProfile(ctx):
-    with open("profiles/id.txt", "r") as profiles:
-        id = profiles.read().split('\n')
-    
-    return str(ctx.author.id) in id
 
 class BaseException(Exception):
     """All our exception should inherit from this"""
